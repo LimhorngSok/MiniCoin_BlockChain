@@ -13,7 +13,7 @@ public class BlockListeningThread extends Thread{
             ServerSocket serverSocket = new ServerSocket(1111);
             while(true) {
                 connection = serverSocket.accept();
-                System.out.println("connected");
+                System.out.println("Received a block...");
                 InputStream inputStream = connection.getInputStream();
                 Scanner scanner = new Scanner(inputStream);
                 int nBlocks = new File(MCPath.BLOCK_DIR).listFiles().length;

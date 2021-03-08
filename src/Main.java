@@ -32,8 +32,9 @@ public class Main {
         };
         new Thread(r1).start();
 
-        Float balance = calculateBalance();
+
         while (true){
+            Float balance = calculateBalance();
             System.out.println("Your account balance: MC" + balance);
             System.out.println("Select option by typing number:");
             System.out.println("1. Check account detail");
@@ -97,9 +98,9 @@ public class Main {
     }
     private static float calculateBalance() throws FileNotFoundException {
         float balance = 0.00F;
-        balance = wallet.getAmount();
         //Get length of block
         int nBlocks = new File(MCPath.BLOCK_DIR).listFiles().length;
+        //Read from transactions from blocks
         if(nBlocks > 0){
             for(int i=0 ; i < nBlocks ; i++){
                 //Read Block and Take Transaction
@@ -136,11 +137,24 @@ public class Main {
                 }
             }
         }
+
+        //Read transactions from pending
+        InputStream inputStream = new FileInputStream(MCPath.PENDING_TRANSACTIONS);
+        Scanner scanner = new Scanner(inputStream);
+        while (scanner.hasNext()) {
+            String line = scanner.nextLine();
+            String params[] = line.split("-");
+            if (params[0].equals(wallet.getPublicKey())) {
+                balance -= Float.parseFloat(params[2]);
+            }
+        }
+
         wallet.setAmount(balance);
         return balance;
     }
     //[OPTION] Return the Account information
-    private static void checkAccount(){
+    private static void checkAccount() throws FileNotFoundException {
+        calculateBalance();
         System.out.println("Private Key:");
         System.out.println(wallet.getPrivateKey());
         System.out.println("Public Key:");
