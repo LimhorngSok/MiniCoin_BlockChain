@@ -6,10 +6,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.sql.Array;
 import java.sql.Timestamp;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Scanner;
-import java.util.UUID;
 
 public class Main {
     private static Wallet wallet = new Wallet("","",0.0F);
@@ -91,9 +89,48 @@ public class Main {
             createAccount();
         }
     }
-    private static float calculateBalance(){
+    private static float calculateBalance() throws FileNotFoundException {
         float balance = 0.00F;
         balance = wallet.getAmount();
+        //Get length of block
+        int nBlocks = new File(MCPath.BLOCK_DIR).listFiles().length;
+        if(nBlocks > 0){
+            for(int i=0 ; i < nBlocks ; i++){
+                //Read Block and Take Transaction
+                InputStream inputStream = new FileInputStream(MCPath.BLOCK_DIR+"block_"+i+".txt");
+                Scanner scanner = new Scanner(inputStream);
+                if(scanner.hasNext()) {
+                    String line = scanner.nextLine();
+                    String params[] = line.split("\\|");
+                    if(params[0] != null && params[1] !=null && params[2] != null){
+                        String s1 = params[1].replace("[","");
+                        String s = s1.replace("]","");
+                        //Convert Transaction to List
+                        List<String> transactions = new ArrayList<String>(Arrays.asList(s.split(", ")));
+                        //Read Transaction
+                        for(int j = 0; j < transactions.size(); j++){
+                            String transaction = transactions.get(j);
+                            String attr[] = transaction.split("-");
+                            //Add Balance
+                            if(attr.length >2) {
+                                if (attr[0].equals(wallet.getPublicKey())) {
+
+                                    balance -= Float.parseFloat(attr[2]);
+                                }else if(attr[1].equals(wallet.getPublicKey()))
+                                {
+                                    balance += Float.parseFloat(attr[2]);
+                                }
+                            }
+                        }
+                    }else{
+                        System.out.println("code in file is not valid");
+                    }
+                }else{
+                    System.out.println("file is empty");
+                }
+            }
+        }
+        wallet.setAmount(balance);
         return balance;
     }
     //[OPTION] Return the Account information
@@ -139,7 +176,6 @@ public class Main {
         String prevHash = null;
         List<String> transactions = new ArrayList<String>();
         Block confirmedBlock = null;
-
         File  pendingTransactionsPath = new File(MCPath.PENDING_TRANSACTIONS);
         File tmpTransactionsPath = new File(MCPath.TMP_TRANSACTIONS);
         boolean isMined = false;
@@ -199,6 +235,7 @@ public class Main {
                 transactions.add("System-"+wallet.getPublicKey()+"-50.0-succeed-"+ new Timestamp(System.currentTimeMillis())+"-"+hashedBlock);
                 confirmedBlock.setTransactions(transactions);
 
+
                 //Return isMined = true;
                 isMined = true;
                 System.out.println("You have mined a block, and you will be rewarded 50MC");
@@ -212,6 +249,11 @@ public class Main {
         printWriter.write(confirmedBlock.toString());
         printWriter.flush();
         outputStream.close();
+
+        //Remove pending
+        PrintWriter writer = new PrintWriter(MCPath.PENDING_TRANSACTIONS);
+        writer.print("");
+        writer.close();
 
         //Broadcast it to other nodes
         Thread thread = new BlockBroadCastingThread(confirmedBlock.toString());
@@ -252,13 +294,6 @@ public class Main {
     private static void broadcastTransaction(String transaction) throws IOException {
         Thread thread = new TransactionBroadcastingThread(transaction);
         thread.run();
-//        Socket connection = new Socket("192.168.100.57", 9999);
-//        OutputStream outputStream =connection.getOutputStream();
-//        PrintWriter printWriter = new PrintWriter(outputStream);
-//        String message = transaction;
-//        System.out.println(message);
-//        printWriter.write(message);
-//        printWriter.flush();
     }
 
 }

@@ -20,7 +20,7 @@ public class BlockBroadCastingThread extends Thread {
             OutputStream outputStream = this.connection.getOutputStream();
             PrintWriter printWriter = new PrintWriter(outputStream);
             String message = this.message;
-            printWriter.write(message + "\n");
+            printWriter.write(message + "\r\n");
             printWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();
