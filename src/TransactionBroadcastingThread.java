@@ -20,7 +20,7 @@ public class TransactionBroadcastingThread extends Thread{
             OutputStream outputStream = connection.getOutputStream();
             PrintWriter printWriter = new PrintWriter(outputStream);
             String message = this.message;
-            printWriter.write(message);
+            printWriter.write(message+"\r\n");
             printWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();

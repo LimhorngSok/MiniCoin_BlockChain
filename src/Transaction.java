@@ -71,7 +71,7 @@ public class Transaction {
         String transaction;
         if(this.sender != null){
 
-            transaction = this.sender+"-"+this.receiver+"-"+this.amount+"-"+this.status+"-"+this.timestamp+"-"+this.signature+"\r\n";
+            transaction = this.sender+"-"+this.receiver+"-"+this.amount+"-"+this.status+"-"+this.timestamp+"-"+this.signature;
         }else{
             transaction = this.receiver + " gets " + this.amount + " at " + timestamp;
         }

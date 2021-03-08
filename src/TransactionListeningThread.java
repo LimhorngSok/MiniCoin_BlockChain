@@ -12,9 +12,17 @@ public class TransactionListeningThread extends Thread{
 
         try {
             ServerSocket serverSocket = new ServerSocket(9999);
-            connection = serverSocket.accept();
-            Thread thread = new ThreadReader(connection);
-            thread.run();
+
+            while (true) {
+                connection = serverSocket.accept();
+                InputStream inputStream = this.connection.getInputStream();
+                Scanner scanner = new Scanner(inputStream);
+                System.out.println("Recieving");
+                OutputStream outputStream = new FileOutputStream(MCPath.PENDING_TRANSACTIONS, true);
+                PrintWriter printWriter = new PrintWriter(outputStream, true);
+                printWriter.write(scanner.nextLine()+"\r\n");
+                printWriter.flush();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -12,10 +12,10 @@ public class BlockListeningThread extends Thread{
         try {
 
             ServerSocket serverSocket = new ServerSocket(8888);
-            connection = serverSocket.accept();
-            InputStream inputStream = connection.getInputStream();
-            Scanner scanner = new Scanner(inputStream);
-            while(scanner.hasNextLine()) {
+            while(true) {
+                connection = serverSocket.accept();
+                InputStream inputStream = connection.getInputStream();
+                Scanner scanner = new Scanner(inputStream);
                 int nBlocks = new File(MCPath.BLOCK_DIR).listFiles().length;
                 OutputStream outputStream = new FileOutputStream(MCPath.BLOCK_DIR+"block_"+nBlocks+".txt",true);
                 PrintWriter printWriter = new PrintWriter(outputStream,true);
@@ -23,9 +23,6 @@ public class BlockListeningThread extends Thread{
                 printWriter.flush();
                 outputStream.close();
             }
-            inputStream.close();
-            scanner.close();
-            System.out.println("Listening...");
         } catch (IOException e) {
             e.printStackTrace();
         }

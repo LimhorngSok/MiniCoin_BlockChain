@@ -123,7 +123,7 @@ public class Main {
             //Write the file into pending transaction list
             OutputStream outputStream = new FileOutputStream(MCPath.PENDING_TRANSACTIONS,true);
             PrintWriter printWriter = new PrintWriter(outputStream,true);
-            printWriter.write(transaction.toString());
+            printWriter.write(transaction.toString()+"\r\n");
             printWriter.flush();
 
             System.out.println("Please wait for confirmation to be made before other can use the MC");
