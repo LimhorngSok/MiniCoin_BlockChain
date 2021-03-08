@@ -5,4 +5,6 @@ public class MCPath {
     public static final String SUCCEED_TRANSACTIONS = "transactions/succeed_transactions.txt";
     public static final String TMP_TRANSACTIONS = "transactions/tmp_transactions.txt";
     public static final String BLOCK_DIR = "blocks/";
+    public static final String NODE_TXT = "node.txt";
+
 }
