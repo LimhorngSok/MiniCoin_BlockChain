@@ -4,7 +4,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public class TransactionBroadcastingThread extends Thread{
-    private Socket connection;
+
     private String message;
 
     public TransactionBroadcastingThread(String message){
@@ -16,11 +16,11 @@ public class TransactionBroadcastingThread extends Thread{
         super.run();
 
         try {
-            connection = new Socket("192.168.100.57", 9999);
-            OutputStream outputStream = this.connection.getOutputStream();
+            Socket connection = new Socket("192.168.100.57", 9999);
+            OutputStream outputStream = connection.getOutputStream();
             PrintWriter printWriter = new PrintWriter(outputStream);
             String message = this.message;
-            printWriter.write(message + "\n");
+            printWriter.write(message);
             printWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();

@@ -9,19 +9,12 @@ public class TransactionListeningThread extends Thread{
     public void run() {
         super.run();
 
-        try {
 
+        try {
             ServerSocket serverSocket = new ServerSocket(9999);
             connection = serverSocket.accept();
-            InputStream inputStream = connection.getInputStream();
-            Scanner scanner = new Scanner(inputStream);
-            while(scanner.hasNextLine()) {
-                OutputStream outputStream = new FileOutputStream(MCPath.PENDING_TRANSACTIONS,true);
-                PrintWriter printWriter = new PrintWriter(outputStream,true);
-                printWriter.write(scanner.nextLine());
-                printWriter.flush();
-            }
-            System.out.println("Listening...");
+            Thread thread = new ThreadReader(connection);
+            thread.run();
         } catch (IOException e) {
             e.printStackTrace();
         }

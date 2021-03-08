@@ -21,7 +21,10 @@ public class BlockListeningThread extends Thread{
                 PrintWriter printWriter = new PrintWriter(outputStream,true);
                 printWriter.write(scanner.nextLine());
                 printWriter.flush();
+                outputStream.close();
             }
+            inputStream.close();
+            scanner.close();
             System.out.println("Listening...");
         } catch (IOException e) {
             e.printStackTrace();

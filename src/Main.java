@@ -49,6 +49,7 @@ public class Main {
                     mineCoin();
                     break;
                 case 4:
+                    System.exit(0);
                     return;
                 default:
                     System.out.println("No such an option!");
@@ -95,7 +96,7 @@ public class Main {
         balance = wallet.getAmount();
         return balance;
     }
-    //Return the Account information
+    //[OPTION] Return the Account information
     private static void checkAccount(){
         System.out.println("Private Key:");
         System.out.println(wallet.getPrivateKey());
@@ -104,7 +105,7 @@ public class Main {
         System.out.println("Amount:");
         System.out.println("MC "+wallet.getAmount());
     }
-    //for sending the coin to someone
+    //[OPTION] for sending the coin to someone
     private static void sendCoin() throws IOException {
         String receiver;
         float amount;
@@ -132,13 +133,13 @@ public class Main {
         }
 
     }
+    //[OPTION] mine bitcoin
     private static void mineCoin() throws IOException {
         System.out.println("Mining...");
-        int scopeHashedBlock;
         String prevHash = null;
         List<String> transactions = new ArrayList<String>();
         Block confirmedBlock = null;
-        int nonce = 0;
+
         File  pendingTransactionsPath = new File(MCPath.PENDING_TRANSACTIONS);
         File tmpTransactionsPath = new File(MCPath.TMP_TRANSACTIONS);
         boolean isMined = false;
@@ -179,20 +180,25 @@ public class Main {
         //Get transactions from tmp
         int n = 0;
         while (isMined == false){
+
             //Generate proof of work
             n++;
+
             //Hash all of them together
             Block block = new Block(prevHash,transactions,n);
             int hashedBlock = block.hashCode();
             System.out.println(hashedBlock);
             String sHashedBlock = String.valueOf(hashedBlock);
+
             //If the hashedBlock is started with "11"
             if(sHashedBlock.charAt(0) == '1' && sHashedBlock.charAt(1) == '1'){
                 confirmedBlock = block;
                 confirmedBlock.setBlockHash(hashedBlock);
+
                 //add new transaction for rewarding
                 transactions.add("System-"+wallet.getPublicKey()+"-50.0-succeed-"+ new Timestamp(System.currentTimeMillis())+"-"+hashedBlock);
                 confirmedBlock.setTransactions(transactions);
+
                 //Return isMined = true;
                 isMined = true;
                 System.out.println("You have mined a block, and you will be rewarded 50MC");
@@ -205,6 +211,7 @@ public class Main {
         PrintWriter printWriter = new PrintWriter(outputStream,true);
         printWriter.write(confirmedBlock.toString());
         printWriter.flush();
+        outputStream.close();
 
         //Broadcast it to other nodes
         Thread thread = new BlockBroadCastingThread(confirmedBlock.toString());
@@ -221,7 +228,7 @@ public class Main {
         if(myIP != null){
             OutputStream outputStream = new FileOutputStream(MCPath.NODE_TXT,true);
             PrintWriter printWriter = new PrintWriter(outputStream,true);
-            printWriter.write(myIP);
+            printWriter.write(myIP+"\r\n");
             printWriter.flush();
         }
         //Generate Public Key and Private Key
@@ -245,6 +252,13 @@ public class Main {
     private static void broadcastTransaction(String transaction) throws IOException {
         Thread thread = new TransactionBroadcastingThread(transaction);
         thread.run();
+//        Socket connection = new Socket("192.168.100.57", 9999);
+//        OutputStream outputStream =connection.getOutputStream();
+//        PrintWriter printWriter = new PrintWriter(outputStream);
+//        String message = transaction;
+//        System.out.println(message);
+//        printWriter.write(message);
+//        printWriter.flush();
     }
 
 }
