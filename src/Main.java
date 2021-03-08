@@ -1,6 +1,12 @@
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.sql.Array;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -8,15 +14,15 @@ public class Main {
     private static Wallet wallet = new Wallet("","",0.0F);
 
 
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) throws IOException {
         verifyAccount();
         Float balance = calculateBalance();
         while (true){
             System.out.println("Your account balance: MC" + balance);
             System.out.println("Select option by typing number:");
             System.out.println("1. Check account detail");
-            System.out.println("2. Send miniCoin to other");
-            System.out.println("3. Mine miniCoin");
+            System.out.println("2. Send MiniCoin to other");
+            System.out.println("3. Mine MiniCoin");
             System.out.println("4. Exit");
             Scanner userInput = new Scanner(System.in);
             int option = userInput.nextInt();
@@ -100,7 +106,7 @@ public class Main {
             Transaction transaction = new Transaction(wallet.getPublicKey(),receiver,amount,timestamp,"unsigned");
             transaction.signTransaction(wallet.getPrivateKey());
             //Write the file into pending transaction list
-            OutputStream outputStream = new FileOutputStream(Path.PENDING_TRANSACTIONS,true);
+            OutputStream outputStream = new FileOutputStream(MCPath.PENDING_TRANSACTIONS,true);
             PrintWriter printWriter = new PrintWriter(outputStream,true);
             printWriter.write(transaction.toString());
             printWriter.flush();
@@ -112,13 +118,71 @@ public class Main {
         }
 
     }
-    private static void mineCoin(){
+    private static void mineCoin() throws IOException {
         System.out.println("Mining...");
-        String pendingTransactionsPath = Path.PENDING_TRANSACTIONS;
+        int scopeHashedBlock;
+        String prevHash = null;
+        List<String> transactions = new ArrayList<String>();
+        Block confirmedBlock = null;
+        int nonce = 0;
+        File  pendingTransactionsPath = new File(MCPath.PENDING_TRANSACTIONS);
+        File tmpTransactionsPath = new File(MCPath.TMP_TRANSACTIONS);
         boolean isMined = false;
-        while (isMined == false){
-            
+        //Copy Transactions from pending to tmp
+        Files.copy(pendingTransactionsPath.toPath(), tmpTransactionsPath.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        //Scan all transactions for confirmation
+        InputStream inputTmpTransactions = new FileInputStream(tmpTransactionsPath);
+        Scanner scannerTmpTransactions = new Scanner(inputTmpTransactions);
+        while (scannerTmpTransactions.hasNext()){
+            transactions.add(scannerTmpTransactions.nextLine());
         }
+        //Get previous hash of block
+        int nBlocks = new File(MCPath.BLOCK_DIR).listFiles().length;
+        //check if there is existing blocks
+        if(nBlocks == 0){
+            prevHash = null;
+        }else{
+            String lastBlockPath = "block_"+(nBlocks-1)+".txt";
+            InputStream inputStream = new FileInputStream(MCPath.BLOCK_DIR+lastBlockPath);
+            Scanner scanner = new Scanner(inputStream);
+            if(scanner.hasNext()){
+                String blockContent = scanner.nextLine();
+                String params[] = blockContent.split("|");
+                prevHash = params[2];
+            }
+        }
+        String test = "12312312";
+        System.out.println(test.charAt(0));
+        //Get transactions from tmp
+        while (isMined == false){
+            //Generate proof of work
+            int n = 0;
+            //Hash all of them together
+            Block block = new Block(prevHash,transactions,n);
+            int hashedBlock = block.hashCode();
+            System.out.println(hashedBlock);
+            String sHashedBlock = String.valueOf(hashedBlock);
+            if(sHashedBlock.charAt(0) == '1' && sHashedBlock.charAt(1) == '1'){
+
+                confirmedBlock = block;
+                confirmedBlock.setBlockHash(hashedBlock);
+                //add new transaction for rewarding
+                transactions.add("System-"+wallet.getPublicKey()+"-50.0-succeed-"+ new Timestamp(System.currentTimeMillis())+"-"+hashedBlock);
+                confirmedBlock.setTransactions(transactions);
+                //Return isMined = true;
+                isMined = true;
+                System.out.println("You have mined a block, and you will be rewarded 50MC");
+            }
+
+        }
+        //Add new transaction to block
+        //Store Block
+        OutputStream outputStream = new FileOutputStream(MCPath.BLOCK_DIR+"block_"+nBlocks+".txt",true);
+        PrintWriter printWriter = new PrintWriter(outputStream,true);
+        printWriter.write(confirmedBlock.toString());
+        printWriter.flush();
+
+        //Broadcast it to other nodes
 
     }
     private static void createAccount() throws FileNotFoundException {
@@ -129,7 +193,7 @@ public class Main {
         String privateKey = UUID.randomUUID().toString().replace("-", "");
         float amount = 0.0F;
 
-        OutputStream outputStream = new FileOutputStream(Path.MY_ACCOUNT);
+        OutputStream outputStream = new FileOutputStream(MCPath.MY_ACCOUNT);
         PrintWriter printWriter = new PrintWriter(outputStream,true);
         wallet.setAmount(amount);
         wallet.setPrivateKey(privateKey);
