@@ -10,10 +10,10 @@ public class BlockListeningThread extends Thread{
         super.run();
 
         try {
-
-            ServerSocket serverSocket = new ServerSocket(8888);
+            ServerSocket serverSocket = new ServerSocket(1111);
             while(true) {
                 connection = serverSocket.accept();
+                System.out.println("connected");
                 InputStream inputStream = connection.getInputStream();
                 Scanner scanner = new Scanner(inputStream);
                 int nBlocks = new File(MCPath.BLOCK_DIR).listFiles().length;

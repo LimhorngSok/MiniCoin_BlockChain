@@ -17,7 +17,7 @@ public class TransactionListeningThread extends Thread{
                 connection = serverSocket.accept();
                 InputStream inputStream = this.connection.getInputStream();
                 Scanner scanner = new Scanner(inputStream);
-                System.out.println("Recieving");
+                System.out.println("Receiving...");
                 OutputStream outputStream = new FileOutputStream(MCPath.PENDING_TRANSACTIONS, true);
                 PrintWriter printWriter = new PrintWriter(outputStream, true);
                 printWriter.write(scanner.nextLine()+"\r\n");

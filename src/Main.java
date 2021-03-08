@@ -20,11 +20,17 @@ public class Main {
             public void run() {
                 Thread thread = new TransactionListeningThread();
                 thread.run();
-                Thread thread1 = new BlockListeningThread();
-                thread1.run();
             }
         };
         new Thread(r).start();
+        Runnable r1 = new Runnable(){
+            @Override
+            public void run() {
+                Thread thread = new BlockListeningThread();
+                thread.run();
+            }
+        };
+        new Thread(r1).start();
 
         Float balance = calculateBalance();
         while (true){
@@ -256,8 +262,7 @@ public class Main {
         writer.close();
 
         //Broadcast it to other nodes
-        Thread thread = new BlockBroadCastingThread(confirmedBlock.toString());
-        thread.run();
+        broadcastBlock(confirmedBlock.toString());
 
     }
     private static void createAccount() throws FileNotFoundException, UnknownHostException {
@@ -293,6 +298,10 @@ public class Main {
     }
     private static void broadcastTransaction(String transaction) throws IOException {
         Thread thread = new TransactionBroadcastingThread(transaction);
+        thread.run();
+    }
+    private static void broadcastBlock(String block){
+        Thread thread = new BlockBroadCastingThread(block);
         thread.run();
     }
 

@@ -4,7 +4,6 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public class BlockBroadCastingThread extends Thread {
-    private Socket connection;
     private String message;
 
     public BlockBroadCastingThread(String message){
@@ -16,10 +15,11 @@ public class BlockBroadCastingThread extends Thread {
         super.run();
 
         try {
-            connection = new Socket("192.168.100.57", 8888);
-            OutputStream outputStream = this.connection.getOutputStream();
+            Socket connection = new Socket("192.168.100.57", 1111);
+            OutputStream outputStream = connection.getOutputStream();
             PrintWriter printWriter = new PrintWriter(outputStream);
             String message = this.message;
+            System.out.println(message+"dasdasdas");
             printWriter.write(message + "\r\n");
             printWriter.flush();
         } catch (IOException e) {
