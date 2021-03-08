@@ -20,6 +20,11 @@ public class BlockListeningThread extends Thread{
                 OutputStream outputStream = new FileOutputStream(MCPath.BLOCK_DIR+"block_"+nBlocks+".txt",true);
                 PrintWriter printWriter = new PrintWriter(outputStream,true);
                 printWriter.write(scanner.nextLine());
+                //Remove pending transactions
+                PrintWriter writer = new PrintWriter(MCPath.PENDING_TRANSACTIONS);
+                writer.print("");
+                writer.close();
+
                 printWriter.flush();
                 outputStream.close();
             }
