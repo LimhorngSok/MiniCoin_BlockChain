@@ -3,7 +3,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class TransactionListeningThread extends Thread{
+public class BlockListeningThread extends Thread{
     private Socket connection;
     @Override
     public void run() {
@@ -11,12 +11,13 @@ public class TransactionListeningThread extends Thread{
 
         try {
 
-            ServerSocket serverSocket = new ServerSocket(9999);
+            ServerSocket serverSocket = new ServerSocket(8888);
             connection = serverSocket.accept();
             InputStream inputStream = connection.getInputStream();
             Scanner scanner = new Scanner(inputStream);
             while(scanner.hasNextLine()) {
-                OutputStream outputStream = new FileOutputStream(MCPath.PENDING_TRANSACTIONS,true);
+                int nBlocks = new File(MCPath.BLOCK_DIR).listFiles().length;
+                OutputStream outputStream = new FileOutputStream(MCPath.BLOCK_DIR+"block_"+nBlocks+".txt",true);
                 PrintWriter printWriter = new PrintWriter(outputStream,true);
                 printWriter.write(scanner.nextLine());
                 printWriter.flush();

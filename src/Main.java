@@ -16,10 +16,18 @@ public class Main {
 
 
     public static void main(String[] args) throws IOException {
-
         verifyAccount();
-        Thread thread = new TransactionListeningThread();
-        thread.run();
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                Thread thread = new TransactionListeningThread();
+                thread.run();
+                Thread thread1 = new BlockListeningThread();
+                thread1.run();
+            }
+        };
+        new Thread(r).start();
+
         Float balance = calculateBalance();
         while (true){
             System.out.println("Your account balance: MC" + balance);
@@ -167,6 +175,7 @@ public class Main {
                 scanner.close();
             }
         }
+
         //Get transactions from tmp
         int n = 0;
         while (isMined == false){
@@ -198,6 +207,8 @@ public class Main {
         printWriter.flush();
 
         //Broadcast it to other nodes
+        Thread thread = new BlockBroadCastingThread(confirmedBlock.toString());
+        thread.run();
 
     }
     private static void createAccount() throws FileNotFoundException, UnknownHostException {
@@ -213,7 +224,7 @@ public class Main {
             printWriter.write(myIP);
             printWriter.flush();
         }
-
+        //Generate Public Key and Private Key
         String publicKey = UUID.randomUUID().toString().replace("-", "");
         String privateKey = UUID.randomUUID().toString().replace("-", "");
         float amount = 0.0F;
