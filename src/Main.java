@@ -1,9 +1,12 @@
 import java.io.*;
+import java.net.*;
+import java.sql.Timestamp;
 import java.util.Scanner;
 import java.util.UUID;
 
 public class Main {
     private static Wallet wallet = new Wallet("","",0.0F);
+
 
     public static void main(String[] args) throws FileNotFoundException {
         verifyAccount();
@@ -82,22 +85,40 @@ public class Main {
         System.out.println("Amount:");
         System.out.println("MC "+wallet.getAmount());
     }
-    private static void sendCoin(){
+    private static void sendCoin() throws IOException {
         String receiver;
         float amount;
         System.out.println("Put receiver address:");
         Scanner scanReceiver = new Scanner(System.in);
         receiver = scanReceiver.nextLine();
-
         System.out.println("Amount:");
         Scanner scanAmount = new Scanner(System.in);
-        amount = scanAmount.nextInt();
+        amount = Math.abs(scanAmount.nextFloat());
+        System.out.println("Sending...");
+        if((wallet.getAmount() - amount) >= 0.0F){
+            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+            Transaction transaction = new Transaction(wallet.getPublicKey(),receiver,amount,timestamp,"unsigned");
+            transaction.signTransaction(wallet.getPrivateKey());
+            //Write the file into pending transaction list
+            OutputStream outputStream = new FileOutputStream(Path.PENDING_TRANSACTIONS,true);
+            PrintWriter printWriter = new PrintWriter(outputStream,true);
+            printWriter.write(transaction.toString());
+            printWriter.flush();
+
+            System.out.println("Please wait for confirmation to be made before other can use the MC");
+            broadcastTransaction(transaction.toString());
+      }else{
+            System.out.println("Insufficient Balance");
+        }
 
     }
     private static void mineCoin(){
         System.out.println("Mining...");
-        String transactionDir = Path.TRANSACTION_DIR;
-
+        String pendingTransactionsPath = Path.PENDING_TRANSACTIONS;
+        boolean isMined = false;
+        while (isMined == false){
+            
+        }
 
     }
     private static void createAccount() throws FileNotFoundException {
@@ -120,6 +141,21 @@ public class Main {
 
 
         System.out.println(privateKey+"-"+publicKey+"-"+amount);
+    }
+    private static void broadcastTransaction(String transaction) throws IOException {
+
+        DatagramSocket socket;
+        InetAddress group;
+        byte[] buf;
+
+        System.out.println("Broadcasting the transaction...");
+        socket = new DatagramSocket();
+        group = InetAddress.getByName("230.0.0.0");
+        buf = transaction.getBytes();
+
+        DatagramPacket packet = new DatagramPacket(buf, buf.length, group, 4446);
+        socket.send(packet);
+        socket.close();
     }
 
 }
